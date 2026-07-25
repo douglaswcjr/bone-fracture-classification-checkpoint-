@@ -1,0 +1,25 @@
+# dataset bruto (grande demais para o Git; instruções de download no README)
+data/
+*.zip
+
+# ambiente virtual
+.venv/
+venv/
+
+# python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# modelos treinados (.keras) SÃO versionados propositalmente — pequenos o
+# suficiente para o Git e necessários para rodar o app sem retreinar.
+
+# streamlit
+.streamlit/
+
+# arquivos internos do harness do Claude Code
+.claude/scheduled_tasks.lock
+
+# SO / editor
+.DS_Store
+Thumbs.db
