@@ -1,5 +1,10 @@
 """Inferência: carrega um modelo treinado e classifica uma imagem de raio-X.
 
+Responsabilidade deste módulo: SÓ inferência (carrega um `.keras` já salvo,
+classifica uma imagem por vez). Não importa nem depende de `src/treino.py`
+(que cuida do treino em si) — só precisa do arquivo `.keras` produzido por
+ele. É o único módulo de classificação importado por `app.py`.
+
 Usado tanto pelo app Streamlit (`app.py`) quanto para testes manuais via CLI:
     python -m src.predicao models/mobilenetv2_transfer.keras caminho/para/imagem.jpg
 """

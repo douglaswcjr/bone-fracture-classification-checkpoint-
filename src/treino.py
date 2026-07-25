@@ -2,6 +2,12 @@
 YOLO, treina a CNN do zero e/ou o MobileNetV2 (transfer learning) e salva
 modelos + métricas + figuras.
 
+Responsabilidade deste módulo: SÓ treino (consome o dataset inteiro, salva
+`.keras` em disco). A contraparte é `src/predicao.py`, que SÓ carrega um
+`.keras` já salvo e classifica uma imagem por vez — é o único dos dois
+módulos importado por `app.py`. Nenhum dos dois importa o outro; a fronteira
+entre "treinar" e "servir" é o arquivo `.keras` em `models/`.
+
 Exemplos:
     python -m src.treino --model both
     python -m src.treino --model mobilenet --epochs-head 10 --epochs-finetune 8

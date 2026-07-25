@@ -155,6 +155,37 @@ memória quanto após salvar/recarregar. Esse achado reforça por que vale a
 pena testar o fluxo completo (treinar → salvar → recarregar → servir) e não
 só o código "quente" dentro do notebook.
 
+## Pipeline técnico (passo a passo)
+
+A seção anterior explica o *raciocínio* por trás de cada entrega; esta é a
+visão mecânica e sequencial do mesmo fluxo, do dado bruto ao app rodando —
+cada etapa referencia o módulo/função que a implementa e o artefato que ela
+produz.
+
+| # | Etapa | Onde | Entrada | Saída |
+| --- | --- | --- | --- | --- |
+| 1 | Organizar o dataset | `data/` (baixado manualmente — ver [Dataset](#dataset)) | `.zip` do Kaggle/Roboflow | `data/{train,valid,test}/{images,labels}` |
+| 2 | Rotular cada imagem | `src/dataset.py::build_dataframe` | anotações YOLO (`.txt`) | `DataFrame` (caminho, split, `class_id`) |
+| 3 | Montar o pipeline de dados | `src/dataset.py::make_dataset` | `DataFrame` | `tf.data.Dataset` (imagem 224×224, rótulo) |
+| 4 | Calcular pesos de classe | `src/dataset.py::compute_class_weights` | `DataFrame` (split treino) | `dict {class_id: peso}` |
+| 5 | Definir as arquiteturas | `src/models.py::build_cnn_scratch` / `build_mobilenetv2` | — | `tf.keras.Model` não treinado |
+| 6 | **Treinar** | `src/treino.py` (`python -m src.treino`) | dataset + pesos + modelo | modelo treinado, salvo em `models/*.keras` |
+| 7 | Avaliar | `src/evaluate.py::evaluate_model` | modelo treinado + split de teste | `classification_report` + matriz de confusão (`reports/figures/`) |
+| 8 | Interpretar | `src/gradcam.py::make_gradcam_heatmap` | modelo + 1 imagem | heatmap Grad-CAM |
+| 9 | **Servir/inferir** | `src/predicao.py` (`python -m src.predicao`) | `models/*.keras` salvo + imagem nova | classe prevista + probabilidades |
+| 10 | Entregar ao usuário | `app.py` (`streamlit run app.py`) | upload feito pelo usuário | classificação + Grad-CAM na tela |
+
+**Por que treino (passo 6) e inferência (passo 9) são módulos separados:**
+`src/treino.py` só roda quando alguém quer (re)treinar — ele é o único lugar
+que toca o dataset completo, o `class_weight` e o loop de `model.fit`, e
+termina escrevendo um `.keras` em disco. `src/predicao.py` só sabe carregar
+esse `.keras` já pronto e classificar uma imagem por vez; é o único módulo de
+classificação que `app.py` importa, e ele não sabe nada sobre como o modelo
+foi treinado. Nenhum dos dois importa o outro — a única coisa que os conecta
+é o arquivo `.keras` em `models/`. Essa fronteira é o que permite treinar em
+uma máquina (etapa pesada, rodada uma vez) e servir em outra (o app, leve,
+rodado toda hora) sem carregar a lógica/dados de treino junto.
+
 ## Estrutura do repositório
 
 ```
